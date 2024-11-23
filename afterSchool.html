@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js Learning Depot</title>
+    <script src="lessons.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <h1 v-text="sitename"></h1>
+            <div v-if="!showLessons" class="backBtn"><button id="goBackBtn" v-on:click="goBackHome">Go Back to
+                    Home</button></div>
+
+            <div class="search-and-checkout" v-if="showLessons">
+                <input type="text" v-model="searchQuery" placeholder="Search lessons..." @input="searchLessons" />
+                <button id="checkoutBtn" v-on:click="showCheckout" :disabled="cartItemCount === 0"
+                    :class="{ 'disabled-btn': cartItemCount === 0 }">
+                    {{ cartItemCount }}
+                    <span class="fas fa-cart-plus"></span> Checkout
+                </button>
+
+
+            </div>
+            <div v-if="showLessons" class="header-controls">
+                <!-- Sorting Options -->
+                <label for="sortCriteria">Sort By:</label>
+                <select v-model="sortCriteria" id="sortCriteria">
+                    <option value="price">Price</option>
+                    <option value="seats">Seats</option>
+                    <option value="location">Location</option>
+                    <option value="title">Subject</option>
+                </select>
+
+                <label for="sortOrder">Order:</label>
+                <select v-model="sortOrder" id="sortOrder">
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+            </div>
+        </header>
+
+        <main>
+            <div v-if="showLessons">
+                <div class="lessonTile" v-for="lesson in sortedLessons" :key="lesson.id">
+                    <h2 v-text="lesson.title"></h2>
+                    <figure>
+                        <img v-bind:src="lesson.image" alt="Lesson Image">
+                    </figure>
+                    <p v-text="lesson.description"></p>
+                    <p id="lessonPrice">Price: {{ lesson.price }}</p>
+                    <p id="lessonSeats">Seats Remaining: {{ seatsLeft(lesson) }}</p>
+                    <p id="lessonLocation">Location: {{ lesson.location }}</p>
+                    <div id="rating">
+                        <span>Rating: </span>
+                        <span v-for="n in lesson.rating">★</span>
+                        <span v-for="n in 5 - lesson.rating">☆</span>
+                    </div>
+                    <button id="addToCartBtn" v-on:click="addToCart(lesson)" v-if="canAddToCart(lesson)">Add to
+                        cart</button>
+                    <button id="addToCartBtnOff" disabled='disabled' v-else>Add to cart</button>
+                    <span v-if="seatsLeft(lesson) === 0">All out!</span>
+                    <span v-else-if="seatsLeft(lesson) < 5">Only {{ seatsLeft(lesson) }} left</span>
+                    <span v-else>Enroll now!</span>
+                </div>
+            </div>
+            <div id="Checkoutpage" v-else>
+                <!-- <h2 id="checkoutTitle">Checkout</h2> -->
+
+                <div class="checkout-container">
+
+                    <!-- Checkout Form (Left Side) -->
+                    <div class="checkout-form">
+                        <h3>Billing Information</h3>
+                        <p class="checkoutField"><strong>First Name:</strong> <input id="firstName"
+                                v-model.trim="order.firstName" /></p>
+                        <p class="checkoutField"><strong>Last Name:</strong> <input id="lastName"
+                                v-model="order.lastName" /></p>
+                        <p class="checkoutField"><strong>Address:</strong> <input id="address"
+                                v-model="order.address" /></p>
+                        <p class="checkoutField"><strong>City:</strong> <input id="city" v-model="order.city" /></p>
+                        <p class="checkoutField"><strong>State:</strong>
+                            <select id="state" v-model="order.state">
+                                <option disabled value="">State</option>
+                                <option v-for="(state, key) in states" v-bind:value="state">{{ key }}</option>
+                            </select>
+                        </p>
+                        <p class="checkoutField"><strong>Zip/Postal Code:</strong> <input id="zip"
+                                v-model.number="order.zip" type="number" /></p>
+
+                        <p class="checkoutField">
+                            <input type="checkbox" id="gift" value="true" v-model="order.gift">
+                            <label for="gift">Ship As Gift?</label>
+                        </p>
+
+                        <p class="checkoutField">
+                            <input type="radio" id="home" value="Home" v-model="order.method">
+                            <label for="home">Home</label>
+                            <input type="radio" id="business" value="Business" v-model="order.method">
+                            <label for="business">Business</label>
+                        </p>
+
+                        <button id="checkoutBtn" v-on:click="submitForm">Place Order</button>
+                    </div>
+                    <!-- Cart Items (Right Side) -->
+                    <div class="cart-list">
+                        <h3>Your Cart</h3>
+                        <!-- List Cart Items -->
+                        <div v-if="cart.length > 0">
+                            <div class="cartItem" v-for="(lessonId, index) in cart" :key="index">
+                                <h4>{{ getLessonById(lessonId).title }}</h4>
+                                <p><strong>Price:</strong> {{ getLessonById(lessonId).price }}</p>
+                                <button class="removeFromCartBtn" @click="removeFromCart(lessonId)">Remove</button>
+                            </div>
+                        </div>
+                        <!-- Display Message if Cart is Empty -->
+                        <div v-else>
+                            <p>Your cart is empty. Add some lessons to proceed with the checkout.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script type="text/javascript">
+                let app = new Vue({
+                    el: '#app',
+                    data: {
+                        sitename: 'After School Classes',
+                        showLessons: true,
+                        searchQuery: '',
+                        displayedLessons: [],  // Store search results
+                        order: {
+                            firstName: '',
+                            lastName: '',
+                            address: '',
+                            city: '',
+                            zip: '',
+                            state: '',
+                            method: 'Home',
+                            gift: '',
+                        },
+                        states: {
+                            AL: 'Alabama',
+                            AR: 'Arizona',
+                            CA: 'California',
+                            NV: 'Nevada',
+                        },
+                        lessons: lessons,
+                        sortCriteria: 'price', // Default sorting criteria
+                        sortOrder: 'asc', // Default sorting order
+                        cart: [],
+                    },
+                    computed: {
+                        cartItemCount() {
+                            // Count unique lessons in the cart
+                            return this.cart.length;
+                        },
+                        sortedLessons() {
+                            const lessonsToSort = this.displayedLessons.length ? this.displayedLessons : this.lessons;
+                            return lessonsToSort.slice().sort((a, b) => {
+                                let modifier = this.sortOrder === 'asc' ? 1 : -1;
+                                if (this.sortCriteria === 'price') {
+                                    return (a.price - b.price) * modifier;
+                                } else if (this.sortCriteria === 'seats') {
+                                    return (a.availableSeats - b.availableSeats) * modifier;
+                                } else if (this.sortCriteria === 'location') {
+                                    return a.location.localeCompare(b.location) * modifier;
+                                } else if (this.sortCriteria === 'title') {
+                                    return a.title.localeCompare(b.title) * modifier;
+                                }
+                                return 0;
+                            });
+                        },
+                    },
+                    methods: {
+                        searchLessons() {
+                            this.displayedLessons = [];
+                            for (let lesson of this.lessons) {
+                                const query = this.searchQuery.toLowerCase();
+                                if (
+                                    lesson.title.toLowerCase().includes(query) ||
+                                    lesson.description.toLowerCase().includes(query) ||
+                                    lesson.location.toLowerCase().includes(query)
+                                ) {
+                                    this.displayedLessons.push(lesson);
+                                }
+                            }
+                        },
+
+                        goBackHome() {
+                            this.showLessons = true; // Show the lessons view again
+                        },
+
+                        addToCart(lesson) {
+                            // Ensure that we only add the lesson to the cart if there are available seats
+                            if (this.canAddToCart(lesson)) {
+                                this.cart.push(lesson.id);
+                                lesson.availableSeats--; // Decrease available seats when added to cart
+                            } else {
+                                alert("No seats available for this lesson."); // Notify user if no seats are available
+                            }
+                        },
+                        showCheckout() {
+                            this.showLessons = !this.showLessons;
+                        },
+                        submitForm() {
+                            alert('Order submitted!');
+                        },
+                        canAddToCart(lesson) {
+                            return this.seatsLeft(lesson) > 0; // Check if any seats are left
+                        },
+                        seatsLeft(lesson) {
+                            return lesson.availableSeats; // Return the available seats directly
+                        },
+                        cartCount(id) {
+                            return this.cart.filter(item => item === id).length; // Count how many times the lesson is in the cart
+                        },
+                        getLessonById(lessonId) {
+                            return this.lessons.find(lesson => lesson.id === lessonId);
+                        },
+
+                        // Remove lesson from the cart
+                        removeFromCart(lessonId) {
+                            const index = this.cart.indexOf(lessonId);
+                            if (index !== -1) {
+                                this.cart.splice(index, 1); // Remove the lesson from the cart
+                                const lesson = this.getLessonById(lessonId);
+                                lesson.availableSeats++; // Restore the seat count when removed from the cart
+                            }
+                        },
+                    }
+                });
+            </script>
+
+</body>
+
+</html>
