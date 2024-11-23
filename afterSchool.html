@@ -15,13 +15,11 @@
     <div id="app">
         <header>
             <h1 v-text="sitename"></h1>
-            <div v-if="!showLessons" class="backBtn"><button id="goBackBtn" v-on:click="goBackHome">Go Back to
-                    Home</button></div>
-
-            <div class="search-and-checkout" v-if="showLessons">
-                <input type="text" v-model="searchQuery" placeholder="Search lessons..." @input="searchLessons" />
-                <button id="checkoutBtn" v-on:click="showCheckout" :disabled="cartItemCount === 0"
-                    :class="{ 'disabled-btn': cartItemCount === 0 }">
+            <div class="search-and-checkout">
+                <input v-if="showLessons" type="text" v-model="searchQuery" placeholder="Search lessons..."
+                    @input="searchLessons" />
+                <button id="checkoutBtn" v-on:click="showCheckout" :disabled="(cartItemCount === 0 && showLessons)"
+                    :class="{ 'disabled-btn': cartItemCount === 0 && showLessons }">
                     {{ cartItemCount }}
                     <span class="fas fa-cart-plus"></span> Checkout
                 </button>
@@ -82,6 +80,10 @@
                                 v-model.trim="order.firstName" /></p>
                         <p class="checkoutField"><strong>Last Name:</strong> <input id="lastName"
                                 v-model="order.lastName" /></p>
+                        <p class="checkoutField">
+                            <strong>Phone:</strong>
+                            <input id="phone" v-model="order.phone" type="text" />
+                        </p>
                         <p class="checkoutField"><strong>Address:</strong> <input id="address"
                                 v-model="order.address" /></p>
                         <p class="checkoutField"><strong>City:</strong> <input id="city" v-model="order.city" /></p>
@@ -106,7 +108,7 @@
                             <label for="business">Business</label>
                         </p>
 
-                        <button id="checkoutBtn" v-on:click="submitForm">Place Order</button>
+                        <button id="orderBtn" v-on:click="submitForm" :disabled="!isOrderValid">Place Order</button>
                     </div>
                     <!-- Cart Items (Right Side) -->
                     <div class="cart-list">
@@ -123,6 +125,14 @@
                         <div v-else>
                             <p>Your cart is empty. Add some lessons to proceed with the checkout.</p>
                         </div>
+                    </div>
+                </div>
+                <!-- Success Popup -->
+                <div v-if="showSuccess" class="popup-overlay">
+                    <div class="popup-content">
+                        <h3>Success</h3>
+                        <p>Your order has been placed successfully!</p>
+                        <button @click="closeSuccessPopup">Close</button>
                     </div>
                 </div>
             </div>
@@ -155,6 +165,7 @@
                         sortCriteria: 'price', // Default sorting criteria
                         sortOrder: 'asc', // Default sorting order
                         cart: [],
+                        showSuccess: false, // For success popup
                     },
                     computed: {
                         cartItemCount() {
@@ -177,6 +188,20 @@
                                 return 0;
                             });
                         },
+                        isOrderValid() {
+                            return this.isNameValid && this.isPhoneValid;
+                        },
+                        isNameValid() {
+                            // Validate that both firstName and lastName only contain letters and spaces
+                            const namePattern = /^[A-Za-z\s]+$/;
+                            return namePattern.test(this.order.firstName) && namePattern.test(this.order.lastName);
+                        },
+                        isPhoneValid() {
+                            // Validate that the phone number contains only numbers
+                            const phonePattern = /^[0-9]+$/;
+                            return phonePattern.test(this.order.phone);
+                        },
+
                     },
                     methods: {
                         searchLessons() {
@@ -210,7 +235,7 @@
                             this.showLessons = !this.showLessons;
                         },
                         submitForm() {
-                            alert('Order submitted!');
+                            this.showSuccessPopup();
                         },
                         canAddToCart(lesson) {
                             return this.seatsLeft(lesson) > 0; // Check if any seats are left
@@ -234,6 +259,16 @@
                                 lesson.availableSeats++; // Restore the seat count when removed from the cart
                             }
                         },
+                        // Show success popup
+                        showSuccessPopup() {
+                            this.showSuccess = true;
+                        },
+
+                        // Close success popup
+                        closeSuccessPopup() {
+                            this.showSuccess = false;
+                        },
+
                     }
                 });
             </script>
