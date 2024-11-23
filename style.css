@@ -45,7 +45,7 @@ header h1 {
     height: 40px;
 }
 
-#checkoutBtn {
+#checkoutBtn,#orderBtn {
     background-color: #ff6b6b;
     color: white;
     border: none;
@@ -55,11 +55,11 @@ header h1 {
     cursor: pointer;
 }
 
-#checkoutBtn:hover {
+#checkoutBtn:hover,#orderBtn:hover{
     background-color: #ff4b4b;
 }
 
-#checkoutBtn:disabled {
+#checkoutBtn:disabled, #orderBtn:disabled{
     background-color: #d3d3d3; /* Light gray background for disabled state */
     color: #888; /* Light gray text color */
     cursor: not-allowed; /* Show "not allowed" cursor */
@@ -329,4 +329,72 @@ body {
 
 .removeFromCartBtn:hover {
     background: #ff4c4c;
+}
+
+
+/* Popup Overlay - Background */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Transparent black background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it sits above other content */
+}
+
+/* Popup Content Box */
+.popup-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+    width: 300px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for the popup */
+    animation: fadeIn 0.3s ease; /* Animation for fading in */
+}
+
+/* Popup Title */
+.popup-content h3 {
+    margin: 0 0 10px; /* Space between title and content */
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Popup Text */
+.popup-content p {
+    margin-bottom: 20px; /* Space below the message */
+    font-size: 16px;
+    color: #333; /* Darker text color for better readability */
+}
+
+/* Popup Button */
+.popup-content button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* Button Hover Effect */
+.popup-content button:hover {
+    background-color: #0056b3; /* Darker blue when hovered */
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
