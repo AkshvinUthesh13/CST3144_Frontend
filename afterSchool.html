@@ -48,8 +48,9 @@
                 <div class="lessonTile" v-for="lesson in sortedLessons" :key="lesson.id">
                     <h2 v-text="lesson.title"></h2>
                     <figure>
-                        <img v-bind:src="lesson.image" alt="Lesson Image">
+                        <img v-bind:src="'http://localhost:3000/' + lesson.image" alt="Lesson Image">
                     </figure>
+
                     <p v-text="lesson.description"></p>
                     <p id="lessonPrice">Price: {{ lesson.price }}</p>
                     <p id="lessonSeats">Seats Remaining: {{ seatsLeft(lesson) }}</p>
@@ -160,7 +161,7 @@
                             CA: 'California',
                             NV: 'Nevada',
                         },
-                        lessons:[],
+                        lessons: [],
                         sortCriteria: 'price', // Default sorting criteria
                         sortOrder: 'asc', // Default sorting order
                         cart: [],
@@ -211,7 +212,7 @@
                             fetch('http://localhost:3000/collection/lessons') // Replace 'lessons' with your MongoDB collection name
                                 .then(response => response.json())
                                 .then(data => {
-                                    this.lesson = data;
+                                    this.lessons = data;
                                 })
                                 .catch(err => console.error('Error fetching lessons:', err));
                         },
