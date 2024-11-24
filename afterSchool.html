@@ -217,18 +217,24 @@
                                 .catch(err => console.error('Error fetching lessons:', err));
                         },
                         searchLessons() {
-                            this.displayedLessons = [];
-                            for (let lesson of this.lessons) {
-                                const query = this.searchQuery.toLowerCase();
-                                if (
-                                    lesson.title.toLowerCase().includes(query) ||
-                                    lesson.description.toLowerCase().includes(query) ||
-                                    lesson.location.toLowerCase().includes(query)
-                                ) {
-                                    this.displayedLessons.push(lesson);
-                                }
+                            if (!this.searchQuery.trim()) {
+                                this.displayedLessons = this.lessons; // Reset to all lessons if query is empty
+                                return;
                             }
+
+                            fetch(`http://localhost:3000/search?query=${encodeURIComponent(this.searchQuery.trim())}`)
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`Server error: ${response.status}`);
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    this.displayedLessons = data; // Update displayed lessons with filtered results
+                                })
+                                .catch(err => console.error('Error fetching search results:', err));
                         },
+
 
                         goBackHome() {
                             this.showLessons = true; // Show the lessons view again
@@ -247,8 +253,52 @@
                             this.showLessons = !this.showLessons;
                         },
                         submitForm() {
-                            this.showSuccessPopup();
+                            // Create the order object with the required structure
+                            const orderData = {
+                                firstName: this.order.firstName,
+                                lastName: this.order.lastName,
+                                phone: parseInt(this.order.phone), // Ensure phone is treated as a number
+                                address: this.order.address,
+                                city: this.order.city,
+                                state: this.order.state,
+                                zip: this.order.zip,
+                                gift: this.order.gift,
+                                method: this.order.method,
+                                lessonIDs: [...new Set(this.cart)], // Ensure only unique lesson IDs are sent
+                                numberOfSpaces: this.cart.reduce((acc, lessonId) => {
+                                    const lesson = this.getLessonById(lessonId);
+                                    if (lesson) {
+                                        const existingEntry = acc.find(entry => entry.lessonId === lessonId);
+                                        if (existingEntry) {
+                                            existingEntry.seats++;
+                                        } else {
+                                            acc.push({ lessonId, seats: 1 });
+                                        }
+                                    }
+                                    return acc;
+                                }, [])
+                            };
+
+                            // Make a POST request to submit the order to your backend
+                            fetch('http://localhost:3000/collection/orders', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(orderData), // Convert the order data to JSON format
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    console.log('Order placed successfully:', data);
+                                    this.showSuccessPopup(); // Show the success popup after successful submission
+                                })
+                                .catch(err => {
+                                    console.error('Error placing order:', err);
+                                    alert('An error occurred while placing the order.');
+                                });
+                            this.showSuccessPopup()
                         },
+
                         canAddToCart(lesson) {
                             return this.seatsLeft(lesson) > 0; // Check if any seats are left
                         },
