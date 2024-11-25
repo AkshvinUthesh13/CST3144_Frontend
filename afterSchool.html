@@ -48,7 +48,7 @@
                 <div class="lessonTile" v-for="lesson in sortedLessons" :key="lesson.id">
                     <h2 v-text="lesson.title"></h2>
                     <figure>
-                        <img v-bind:src="'http://localhost:3000/' + lesson.image" alt="Lesson Image">
+                        <img v-bind:src="'http://localhost:3000/images/' + lesson.image" alt="Lesson Image">
                     </figure>
 
                     <p v-text="lesson.description"></p>
@@ -264,8 +264,7 @@
                                 zip: this.order.zip,
                                 gift: this.order.gift,
                                 method: this.order.method,
-                                lessonIDs: [...new Set(this.cart)], // Ensure only unique lesson IDs are sent
-                                numberOfSpaces: this.cart.reduce((acc, lessonId) => {
+                                cartItems: this.cart.reduce((acc, lessonId) => {
                                     const lesson = this.getLessonById(lessonId);
                                     if (lesson) {
                                         const existingEntry = acc.find(entry => entry.lessonId === lessonId);
