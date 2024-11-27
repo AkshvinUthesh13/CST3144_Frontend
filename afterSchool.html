@@ -116,14 +116,23 @@
                         <!-- List Cart Items -->
                         <div v-if="cart.length > 0">
                             <div class="cartItem" v-for="(lessonId, index) in cart" :key="index">
+                                <figure>
+                                    <img v-bind:src="'http://localhost:3000/images/' + getLessonById(lessonId).image"
+                                        alt="Lesson Image">
+                                </figure>
                                 <h4>{{ getLessonById(lessonId).title }}</h4>
                                 <p><strong>Price:</strong> {{ getLessonById(lessonId).price }}</p>
                                 <button class="removeFromCartBtn" @click="removeFromCart(lessonId)">Remove</button>
                             </div>
                         </div>
+                        <p></p>
                         <!-- Display Message if Cart is Empty -->
                         <div v-else>
                             <p>Your cart is empty. Add some lessons to proceed with the checkout.</p>
+                        </div>
+                        <!-- Total Price Section -->
+                        <div class="totalPrice">
+                            <h4>Total Price: {{ totalPrice }}</h4>
                         </div>
                     </div>
                 </div>
@@ -201,6 +210,12 @@
                             const phonePattern = /^[0-9]+$/;
                             return phonePattern.test(this.order.phone);
                         },
+                        totalPrice() {
+                            return this.cart.reduce((sum, lessonId) => {
+                                const lesson = this.getLessonById(lessonId);
+                                return sum + (lesson ? lesson.price : 0);
+                            }, 0);
+                        }
 
                     },
                     mounted() {
@@ -252,12 +267,42 @@
                         showCheckout() {
                             this.showLessons = !this.showLessons;
                         },
+                        updateLessonSeats(cartItems) {
+                            // Prepare a single payload containing lesson IDs and updated seat counts
+                            const updates = cartItems.map(item => {
+                                const lesson = this.getLessonById(item.lessonId);
+                                if (lesson) {
+                                    const updatedSeats = lesson.availableSeats
+                                    return { lessonId: item.lessonId, availableSeats: updatedSeats };
+                                }
+                                return null;
+                            })
+
+
+                            // Send the updates to the backend
+                            fetch('http://localhost:3000/updateSeats', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(updates), // Send the array of updates
+                            })
+                                .then(response => {
+                                    if (response.ok) {
+                                        console.log('Lesson seats updated successfully.');
+                                    } else {
+                                        console.error('Failed to update lesson seats.');
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error('Error updating lesson seats:', err);
+                                });
+                        },
+
+
                         submitForm() {
-                            // Create the order object with the required structure
                             const orderData = {
                                 firstName: this.order.firstName,
                                 lastName: this.order.lastName,
-                                phone: parseInt(this.order.phone), // Ensure phone is treated as a number
+                                phone: parseInt(this.order.phone),
                                 address: this.order.address,
                                 city: this.order.city,
                                 state: this.order.state,
@@ -278,24 +323,21 @@
                                 }, [])
                             };
 
-                            // Make a POST request to submit the order to your backend
-                            fetch('http://localhost:3000/collection/orders', {
+                            // POST order
+                            fetch('http://localhost:3000/orders', {
                                 method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(orderData), // Convert the order data to JSON format
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(orderData),
                             })
                                 .then(response => response.json())
-                                .then(data => {
-                                    console.log('Order placed successfully:', data);
-                                    this.showSuccessPopup(); // Show the success popup after successful submission
+                                .then(() => {
+                                    this.updateLessonSeats(orderData.cartItems);
+                                    this.showSuccessPopup(); // Show success popup
                                 })
                                 .catch(err => {
-                                    console.error('Error placing order:', err);
+                                    console.error('Error submitting order:', err);
                                     alert('An error occurred while placing the order.');
                                 });
-                            this.showSuccessPopup()
                         },
 
                         canAddToCart(lesson) {
