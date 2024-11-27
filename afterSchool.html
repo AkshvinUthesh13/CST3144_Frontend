@@ -117,12 +117,15 @@
                         <div v-if="cart.length > 0">
                             <div class="cartItem" v-for="(lessonId, index) in cart" :key="index">
                                 <figure>
-                                    <img v-bind:src="'http://localhost:3000/images/' + getLessonById(lessonId).image"
+                                    <img class="cartImage"
+                                        v-bind:src="'http://localhost:3000/images/' + getLessonById(lessonId).image"
                                         alt="Lesson Image">
                                 </figure>
-                                <h4>{{ getLessonById(lessonId).title }}</h4>
-                                <p><strong>Price:</strong> {{ getLessonById(lessonId).price }}</p>
-                                <button class="removeFromCartBtn" @click="removeFromCart(lessonId)">Remove</button>
+                                <div class="cartDetails">
+                                    <h4>{{ getLessonById(lessonId).title }}</h4>
+                                    <p><strong>Price:</strong> {{ getLessonById(lessonId).price }}</p>
+                                    <button class="removeFromCartBtn" @click="removeFromCart(lessonId)">Remove</button>
+                                </div>
                             </div>
                         </div>
                         <p></p>

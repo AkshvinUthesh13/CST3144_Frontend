@@ -301,6 +301,8 @@ body {
 }
 
 .cartItem {
+    display: flex; /* Enable Flexbox */
+    align-items: center; /* Center items vertically */
     margin-bottom: 15px;
     padding: 15px;
     background: #fff;
@@ -308,13 +310,29 @@ body {
     border-radius: 4px;
 }
 
-.cartItem h4 {
-    margin: 0 0 10px;
+.cartImage { 
+    width: 100px; 
+    height: auto; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+    margin-right: 15px; /* Add space between the image and text */
 }
 
-.cartItem p {
-    margin: 0;
+.cartDetails {
+    flex: 1; /* Allow the details to take up remaining space */
+    display: flex;
+    flex-direction: column; /* Stack details vertically */
+}
+
+.cartDetails h4 {
+    margin: 0 0 10px;
+    font-size: 16px;
+}
+
+.cartDetails p {
+    margin: 0 0 5px;
     font-size: 14px;
+    color: #555;
 }
 
 .removeFromCartBtn {
@@ -330,6 +348,7 @@ body {
 .removeFromCartBtn:hover {
     background: #ff4c4c;
 }
+
 
 
 /* Popup Overlay - Background */
