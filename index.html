@@ -48,7 +48,7 @@
                 <div class="lessonTile" v-for="lesson in sortedLessons" :key="lesson.id">
                     <h2 v-text="lesson.title"></h2>
                     <figure>
-                        <img v-bind:src="'http://localhost:3000/images/' + lesson.image" alt="Lesson Image">
+                        <img v-bind:src="'https://cst3144-backend-hqwj.onrender.com/images/' + lesson.image" alt="Lesson Image">
                     </figure>
 
                     <p v-text="lesson.description"></p>
@@ -118,7 +118,7 @@
                             <div class="cartItem" v-for="(lessonId, index) in cart" :key="index">
                                 <figure>
                                     <img class="cartImage"
-                                        v-bind:src="'http://localhost:3000/images/' + getLessonById(lessonId).image"
+                                        v-bind:src="'https://cst3144-backend-hqwj.onrender.com/images/' + getLessonById(lessonId).image"
                                         alt="Lesson Image">
                                 </figure>
                                 <div class="cartDetails">
@@ -227,7 +227,7 @@
                     methods: {
 
                         fetchLessons() {
-                            fetch('http://localhost:3000/collection/lessons') // Replace 'lessons' with your MongoDB collection name
+                            fetch('https://cst3144-backend-hqwj.onrender.com/collection/lessons') 
                                 .then(response => response.json())
                                 .then(data => {
                                     this.lessons = data;
@@ -240,7 +240,7 @@
                                 return;
                             }
 
-                            fetch(`http://localhost:3000/search?query=${encodeURIComponent(this.searchQuery.trim())}`)
+                            fetch(`https://cst3144-backend-hqwj.onrender.com/search?query=${encodeURIComponent(this.searchQuery.trim())}`)
                                 .then(response => {
                                     if (!response.ok) {
                                         throw new Error(`Server error: ${response.status}`);
@@ -283,7 +283,7 @@
 
 
                             // Send the updates to the backend
-                            fetch('http://localhost:3000/updateSeats', {
+                            fetch('https://cst3144-backend-hqwj.onrender.com/updateSeats', {
                                 method: 'PUT',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(updates), // Send the array of updates
@@ -327,7 +327,7 @@
                             };
 
                             // POST order
-                            fetch('http://localhost:3000/orders', {
+                            fetch('https://cst3144-backend-hqwj.onrender.com/orders', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(orderData),
