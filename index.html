@@ -166,6 +166,7 @@
                             state: '',
                             method: 'Home',
                             gift: '',
+                            totalPrice:0
                         },
                         states: {
                             AL: 'Alabama',
@@ -312,6 +313,7 @@
                                 zip: this.order.zip,
                                 gift: this.order.gift,
                                 method: this.order.method,
+                                totalPrice:this.order.totalPrice,
                                 cartItems: this.cart.reduce((acc, lessonId) => {
                                     const lesson = this.getLessonById(lessonId);
                                     if (lesson) {
@@ -319,7 +321,7 @@
                                         if (existingEntry) {
                                             existingEntry.seats++;
                                         } else {
-                                            acc.push({ lessonId, seats: 1 });
+                                            acc.push({ lessonId, seats: 1,price: lesson.price});
                                         }
                                     }
                                     return acc;
